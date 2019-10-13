@@ -1,38 +1,91 @@
 #include "main.h"
 using namespace std;
 
-int main(int argc, char* argv[])
-{
-  SDL_Window* window = NULL;
-  SDL_Surface* surface = NULL;
+SDL_Window* window = NULL;
+SDL_Surface* surface = NULL;
+SDL_Surface* hello = NULL;
 
-  if(SDL_Init(SDL_INIT_VIDEO) < 0)
+bool init()
+{
+  // Init success flag
+  bool success = true;
+
+  // SDL init
+  if(SDL_Init(SDL_INIT_VIDEO)<0)
     {
-      // Debug for errors
-      cout << "SDL failed to initialize. Error:" << SDL_GetError() << endl;
+      cout << "SDL could not initialize. Error:" << SDL_GetError() << endl;
+      success = false;
     }
   else
     {
       // Create window
-      window = SDL_CreateWindow("Test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, winXMax, winYMax, SDL_WINDOW_SHOWN);
-      
-      // Debug for errors
+      window = SDL_CreateWindow("TestGraphics", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, winXMax, winYMax, SDL_WINDOW_SHOWN);
+      // Window debug
       if(window == NULL)
 	{
-	  cout << "Window failed to create. Error:" << SDL_GetError();
+	  cout << "Window unable to be created. Error:" << SDL_GetError() << endl;
+	  success = false;
+	  
 	}
       else
 	{
-	  // Fill window with white and show
+
+	  // Grab surface
 	  surface = SDL_GetWindowSurface(window);
-	  SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0xFF, 0xFF, 0xFF));
-	  SDL_UpdateWindowSurface(window);
-	  
-	  // Wait ten seconds and then close and cleanup
-	  SDL_Delay(10000);
-	  SDL_DestroyWindow(window);
-	  SDL_Quit();
-	  return 0;
 	}
     }
+  return success;
+}
+
+bool loadMedia()
+{
+  // Init success flag
+  bool success = true;
+
+  // Load splash screen
+  hello = SDL_LoadBMP("hello.bmp");
+  // Debug
+  if(hello == NULL)
+    {
+      cout << "Couldn't load image. Error:" << SDL_GetError() << endl;
+      success = false;
+    }
+  else
+    {
+      // Apply splash screen and update
+      SDL_BlitSurface(hello, NULL, surface, NULL);
+      SDL_UpdateWindowSurface(window);
+    }
+  return success;
+}
+
+void cleanup()
+{
+  // Deallocate surfaces
+  SDL_FreeSurface(hello);
+  hello = NULL;
+
+  // Delete window
+  SDL_DestroyWindow(window);
+  window = NULL;
+
+  SDL_Quit();
+}
+
+int main(int argc, char* argv[])
+{
+  if(!init())
+    {
+      cout << "Failed to initialize." << endl;
+    }
+  else
+    {
+      if(!loadMedia())
+	{
+	  cout << "Failed to load image." << endl;
+	}
+    }
+  SDL_Delay(10000);
+  cleanup();
+  return 0;
 }
