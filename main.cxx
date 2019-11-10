@@ -4,6 +4,13 @@ using namespace std;
 SDL_Window* window = NULL;
 SDL_Surface* surface = NULL;
 SDL_Surface* hello = NULL;
+int tileSize = 16;
+int mapX = winXMax/tileSize/2-1;
+int mapXPixels = mapX*tileSize;
+int mapY = winYMax/tileSize-1;
+int mapYPixels = mapY*tileSize;
+int mapXZero = winXMax/2+tileSize/2;
+int mapYZero = (winYMax-mapYPixels)/2;
 
 bool init()
 {
@@ -43,7 +50,7 @@ bool loadMedia()
   bool success = true;
 
   // Load splash screen
-  hello = SDL_LoadBMP("hello.bmp");
+  hello = SDL_LoadBMP("grass.bmp");
   // Debug
   if(hello == NULL)
     {
@@ -53,7 +60,14 @@ bool loadMedia()
   else
     {
       // Apply splash screen and update
-      SDL_BlitSurface(hello, NULL, surface, NULL);
+      for(int i=0;i<mapX;i++)
+	{
+	  for(int j=0;j<mapY;j++)
+	    {
+	      SDL_Rect dstrect = {i*tileSize+mapXZero, j*tileSize+mapYZero, (i+1)*tileSize+mapXZero, (j+1)*tileSize+mapYZero};
+	      SDL_BlitSurface(hello, NULL, surface, &dstrect);
+	    }
+	}
       SDL_UpdateWindowSurface(window);
     }
   return success;
