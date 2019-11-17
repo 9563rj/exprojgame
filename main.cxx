@@ -4,6 +4,7 @@ using namespace std;
 SDL_Window* window = NULL;
 SDL_Surface* surface = NULL;
 SDL_Surface* hello = NULL;
+SDL_Surface* player = NULL;
 int tileSize = 16;
 int mapX = winXMax/tileSize/2-1;
 int mapXPixels = mapX*tileSize;
@@ -11,6 +12,8 @@ int mapY = winYMax/tileSize-1;
 int mapYPixels = mapY*tileSize;
 int mapXZero = winXMax/2+tileSize/2;
 int mapYZero = (winYMax-mapYPixels)/2;
+int mapXCenter = mapXZero+(mapXPixels/2);
+int mapYCenter = mapYZero+(mapYPixels/2);
 
 bool init()
 {
@@ -51,15 +54,16 @@ bool loadMedia()
 
   // Load splash screen
   hello = SDL_LoadBMP("grass.bmp");
+  player = SDL_LoadBMP("player.bmp");
   // Debug
-  if(hello == NULL)
+  if(hello == NULL || player == NULL)
     {
-      cout << "Couldn't load image. Error:" << SDL_GetError() << endl;
+      cout << "Couldn't load texture. Error:" << SDL_GetError() << endl;
       success = false;
     }
   else
     {
-      // Apply splash screen and update
+      // Apply grass tiling
       for(int i=0;i<mapX;i++)
 	{
 	  for(int j=0;j<mapY;j++)
@@ -68,6 +72,9 @@ bool loadMedia()
 	      SDL_BlitSurface(hello, NULL, surface, &dstrect);
 	    }
 	}
+      // Apply player
+      SDL_Rect playerDest = {mapXCenter-(tileSize/2), mapYCenter-(tileSize/2), mapXCenter+(tileSize/2), mapYCenter+(tileSize/2)};
+      SDL_BlitSurface(player, NULL, surface, &playerDest);
       SDL_UpdateWindowSurface(window);
     }
   return success;
@@ -99,7 +106,7 @@ int main(int argc, char* argv[])
 	  cout << "Failed to load image." << endl;
 	}
     }
-  SDL_Delay(10000);
+  SDL_Delay(100000);
   cleanup();
   return 0;
 }
