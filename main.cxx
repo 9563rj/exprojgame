@@ -1,6 +1,8 @@
 #include "main.h"
 using namespace std;
 
+bool gameRunning = true;
+SDL_Event event;
 SDL_Window* window = NULL;
 SDL_Surface* surface = NULL;
 SDL_Surface* hello = NULL;
@@ -106,7 +108,23 @@ int main(int argc, char* argv[])
 	  cout << "Failed to load image." << endl;
 	}
     }
-  SDL_Delay(100000);
+  while(gameRunning)
+    {
+      SDL_PollEvent(&event);
+      switch(event.type)
+	{
+	case SDL_KEYDOWN:
+	  gameRunning = false;
+	  break;
+
+	case SDL_KEYUP:
+	  gameRunning = false;
+	  break;
+
+	default:
+	  break;
+	}
+    }
   cleanup();
   return 0;
 }
