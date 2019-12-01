@@ -16,6 +16,20 @@ int mapXZero = winXMax/2+tileSize/2;
 int mapYZero = (winYMax-mapYPixels)/2;
 int mapXCenter = mapXZero+(mapXPixels/2);
 int mapYCenter = mapYZero+(mapYPixels/2);
+int playerOffsetX = mapXCenter;
+int playerOffsetY = mapYCenter;
+// Keypress bools
+bool wKeyPress = false;
+bool aKeyPress = false;
+bool sKeyPress = false;
+bool dKeyPress = false;
+bool drawPlayer()
+{
+  // Apply player
+  SDL_Rect playerDest = {playerOffsetX-(tileSize/2), playerOffsetY-(tileSize/2), playerOffsetX+(tileSize/2), playerOffsetY+(tileSize/2)};
+  SDL_BlitSurface(player, NULL, surface, &playerDest);
+  SDL_UpdateWindowSurface(window);
+}
 
 bool init()
 {
@@ -49,7 +63,7 @@ bool init()
   return success;
 }
 
-bool loadMedia()
+bool frameHandler()
 {
   // Init success flag
   bool success = true;
@@ -74,10 +88,6 @@ bool loadMedia()
 	      SDL_BlitSurface(hello, NULL, surface, &dstrect);
 	    }
 	}
-      // Apply player
-      SDL_Rect playerDest = {mapXCenter-(tileSize/2), mapYCenter-(tileSize/2), mapXCenter+(tileSize/2), mapYCenter+(tileSize/2)};
-      SDL_BlitSurface(player, NULL, surface, &playerDest);
-      SDL_UpdateWindowSurface(window);
     }
   return success;
 }
@@ -103,27 +113,62 @@ int main(int argc, char* argv[])
     }
   else
     {
-      if(!loadMedia())
+      if(!frameHandler())
 	{
 	  cout << "Failed to load image." << endl;
 	}
     }
   while(gameRunning)
     {
+      
+
+      // Event handler
       SDL_PollEvent(&event);
       switch(event.type)
 	{
+	  // Keypress handler
 	case SDL_KEYDOWN:
-	  gameRunning = false;
+	  switch(event.key.keysym.sym)
+	    {
+	    case SDLK_ESCAPE:
+	      gameRunning = false;
+	      break;
+
+	    case SDLK_w:
+	      wKeyPress = true;
+	      break;
+
+	    case SDLK_a:
+	      aKeyPress = true;
+	      break;
+
+	    case SDLK_s:
+	      sKeyPress = true;
+	      break;
+
+	    case SDLK_d:
+	      dKeyPress = true;
+	      break;
+
+	    default:
+	      break;
+	    }
 	  break;
 
+	  // Key release handler
 	case SDL_KEYUP:
-	  gameRunning = false;
 	  break;
 
 	default:
 	  break;
 	}
+      // Keypress bool handler
+      if(wKeyPress) {playerOffsetY--;}
+      if(aKeyPress) {playerOffsetX--;}
+      if(sKeyPress) {playerOffsetY++;}
+      if(dKeyPress) {playerOffsetX++;}
+      frameHandler();
+      drawPlayer();
     }
   cleanup();
   return 0;
