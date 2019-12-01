@@ -157,6 +157,27 @@ int main(int argc, char* argv[])
 
 	  // Key release handler
 	case SDL_KEYUP:
+	  switch(event.key.keysym.sym)
+	    {
+	    case SDLK_w:
+	      wKeyPress = false;
+	      break;
+
+	    case SDLK_a:
+	      aKeyPress = false;
+	      break;
+
+	    case SDLK_s:
+	      sKeyPress = false;
+	      break;
+
+	    case SDLK_d:
+	      dKeyPress = false;
+	      break;
+
+	    default:
+	      break;
+	    }
 	  break;
 
 	default:
