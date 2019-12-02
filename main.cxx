@@ -7,6 +7,8 @@ SDL_Window* window = NULL;
 SDL_Surface* surface = NULL;
 SDL_Surface* hello = NULL;
 SDL_Surface* player = NULL;
+
+// map variables
 int tileSize = 16;
 int mapX = winXMax/tileSize/2-1;
 int mapXPixels = mapX*tileSize;
@@ -18,11 +20,17 @@ int mapXCenter = mapXZero+(mapXPixels/2);
 int mapYCenter = mapYZero+(mapYPixels/2);
 int playerOffsetX = mapXCenter;
 int playerOffsetY = mapYCenter;
+
+// Frame limiting
+Uint32 startTime = 0;
+Uint32 endTime = 0;
+
 // Keypress bools
 bool wKeyPress = false;
 bool aKeyPress = false;
 bool sKeyPress = false;
 bool dKeyPress = false;
+
 bool drawPlayer()
 {
   // Apply player
@@ -120,8 +128,16 @@ int main(int argc, char* argv[])
     }
   while(gameRunning)
     {
-      
-
+      // Frame limiting init
+      Uint32 delta = 0;
+      if(!startTime)
+	{
+	  startTime = SDL_GetTicks();
+	}
+      else
+	{
+	  delta = endTime - startTime;
+	}
       // Event handler
       SDL_PollEvent(&event);
       switch(event.type)
@@ -190,6 +206,14 @@ int main(int argc, char* argv[])
       if(dKeyPress) {playerOffsetX++;}
       frameHandler();
       drawPlayer();
+
+      // Frame limiter
+      if(delta<ticksFrame)
+	{
+	  SDL_Delay(ticksFrame - delta);
+	}
+      startTime = endTime;
+      endTime = SDL_GetTicks();
     }
   cleanup();
   return 0;
