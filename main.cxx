@@ -18,6 +18,8 @@ int mapXZero = winXMax/2+tileSize/2;
 int mapYZero = (winYMax-mapYPixels)/2;
 int mapXCenter = mapXZero+(mapXPixels/2);
 int mapYCenter = mapYZero+(mapYPixels/2);
+int mapWidth = mapXPixels/2;
+int mapHeight = mapYPixels/2;
 int playerOffsetX = mapXCenter;
 int playerOffsetY = mapYCenter;
 
