@@ -33,6 +33,56 @@ bool aKeyPress = false;
 bool sKeyPress = false;
 bool dKeyPress = false;
 
+// Spawning
+Uint32 lastSpawn = 0;
+Uint32 sinceSpawn = 0;
+Uint32 spawnInterval;
+vector<Enemy*> enemies;
+
+// Random engine initializer
+random_device rd;
+mt19937 eng(rd());
+uniform_int_distribution<> spawnIntervalDist(3000,10000);
+
+// Enemy constructor
+Enemy::Enemy()
+{
+  enemyOffsetX = mapXCenter;
+  enemyOffsetY = mapYCenter;
+  enemySprite = SDL_LoadBMP("enemy.bmp");
+  if(enemySprite == NULL)
+    {
+      cout << "Failed to load enemy.bmp" << endl;
+      exit(1);
+    }
+}
+
+void Enemy::Draw()
+{
+  // Apply enemy
+  SDL_Rect enemyDest = {enemyOffsetX-(tileSize/2), enemyOffsetY-(tileSize/2), enemyOffsetX+(tileSize/2), enemyOffsetY+(tileSize/2)};
+  SDL_BlitSurface(enemySprite, NULL, surface, &enemyDest);
+  SDL_UpdateWindowSurface(window);
+}
+  
+void spawnEnemy()
+{
+  cout << "SpawnEnemy called" << endl;
+  Enemy* new_Enemy = new Enemy();
+  enemies.push_back(new_Enemy);
+  lastSpawn = SDL_GetTicks();
+}
+
+void drawEnemies()
+{
+  vector<Enemy*>::iterator it;
+  for(it=enemies.begin(); it!=enemies.end(); it++)
+    {
+      Enemy* enemy = *it;
+      enemy->Draw();
+    }
+}
+
 bool drawPlayer()
 {
   // Apply player
@@ -70,6 +120,8 @@ bool init()
 	  surface = SDL_GetWindowSurface(window);
 	}
     }
+  spawnInterval = spawnIntervalDist(eng);
+  cout << spawnInterval << endl;
   return success;
 }
 
@@ -78,9 +130,10 @@ bool frameHandler()
   // Init success flag
   bool success = true;
 
-  // Load splash screen
+  // Load bitmaps
   hello = SDL_LoadBMP("grass.bmp");
   player = SDL_LoadBMP("player.bmp");
+  
   // Debug
   if(hello == NULL || player == NULL)
     {
@@ -140,6 +193,16 @@ int main(int argc, char* argv[])
 	{
 	  delta = endTime - startTime;
 	}
+      // Spawning timer
+      Uint32 time = SDL_GetTicks();
+      cout << sinceSpawn << endl << spawnInterval << endl;
+      if (sinceSpawn > spawnInterval)
+	{
+	  
+	  spawnEnemy();
+	}
+      sinceSpawn = time-lastSpawn;
+      
       // Event handler
       SDL_PollEvent(&event);
       switch(event.type)
@@ -208,6 +271,7 @@ int main(int argc, char* argv[])
       if(dKeyPress) {playerOffsetX++;}
       frameHandler();
       drawPlayer();
+      drawEnemies();
 
       // Frame limiter
       if(delta<ticksFrame)
