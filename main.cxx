@@ -43,12 +43,39 @@ vector<Enemy*> enemies;
 random_device rd;
 mt19937 eng(rd());
 uniform_int_distribution<> spawnIntervalDist(3000,10000);
+uniform_int_distribution<> spawnSidesRange(mapYCenter-mapHeight,mapYCenter+mapHeight);
+uniform_int_distribution<> edgePicker(0,3);
+uniform_int_distribution<> spawnTopsRange(mapXCenter-mapWidth,mapXCenter+mapWidth);
 
 // Enemy constructor
 Enemy::Enemy()
 {
-  enemyOffsetX = mapXCenter;
-  enemyOffsetY = mapYCenter;
+  switch(edgePicker(eng))
+    {
+    case 0:
+      cout << "Spawning edge O..." << endl;
+      enemyOffsetX = mapXCenter-mapWidth+(tileSize/2);
+      enemyOffsetY = spawnSidesRange(eng);
+      break;
+
+    case 1:
+      cout << "Spawning edge 1..." << endl;
+      enemyOffsetX = spawnTopsRange(eng);
+      enemyOffsetY = mapYCenter-mapHeight+(tileSize/2);
+      break;
+
+    case 2:
+      cout << "Spawning edge 2..." << endl;
+      enemyOffsetX = mapXCenter+mapWidth-(tileSize/2);
+      enemyOffsetY = spawnSidesRange(eng);
+      break;
+
+    case 3:
+      cout << "Spawning edge 3..." << endl;
+      enemyOffsetX = spawnTopsRange(eng);
+      enemyOffsetY = mapYCenter+mapHeight-(tileSize/2);
+      break;
+    }
   enemySprite = SDL_LoadBMP("enemy.bmp");
   if(enemySprite == NULL)
     {
@@ -198,8 +225,8 @@ int main(int argc, char* argv[])
       cout << sinceSpawn << endl << spawnInterval << endl;
       if (sinceSpawn > spawnInterval)
 	{
-	  
 	  spawnEnemy();
+	  spawnInterval = spawnIntervalDist(eng);
 	}
       sinceSpawn = time-lastSpawn;
       
