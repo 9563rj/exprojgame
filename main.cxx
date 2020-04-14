@@ -230,67 +230,15 @@ int main(int argc, char* argv[])
 	}
       sinceSpawn = time-lastSpawn;
       
-      // Event handler
-      SDL_PollEvent(&event);
-      switch(event.type)
-	{
-	  // Keypress handler
-	case SDL_KEYDOWN:
-	  switch(event.key.keysym.sym)
-	    {
-	    case SDLK_ESCAPE:
-	      gameRunning = false;
-	      break;
-
-	    case SDLK_w:
-	      wKeyPress = true;
-	      break;
-
-	    case SDLK_a:
-	      aKeyPress = true;
-	      break;
-
-	    case SDLK_s:
-	      sKeyPress = true;
-	      break;
-
-	    case SDLK_d:
-	      dKeyPress = true;
-	      break;
-
-	    default:
-	      break;
-	    }
-	  break;
-
-	  // Key release handler
-	case SDL_KEYUP:
-	  switch(event.key.keysym.sym)
-	    {
-	    case SDLK_w:
-	      wKeyPress = false;
-	      break;
-
-	    case SDLK_a:
-	      aKeyPress = false;
-	      break;
-
-	    case SDLK_s:
-	      sKeyPress = false;
-	      break;
-
-	    case SDLK_d:
-	      dKeyPress = false;
-	      break;
-
-	    default:
-	      break;
-	    }
-	  break;
-
-	default:
-	  break;
-	}
+      // Input handler
+      SDL_PumpEvents();
+      const Uint8* keys = SDL_GetKeyboardState(NULL);
+      wKeyPress = keys[SDL_SCANCODE_W];
+      aKeyPress = keys[SDL_SCANCODE_A];
+      sKeyPress = keys[SDL_SCANCODE_S];
+      dKeyPress = keys[SDL_SCANCODE_D];
+      if(keys[SDL_SCANCODE_ESCAPE]) {gameRunning = false;}
+      
       // Keypress bool handler
       if(wKeyPress) {playerOffsetY--;}
       if(aKeyPress) {playerOffsetX--;}
