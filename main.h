@@ -16,9 +16,11 @@ class Enemy
 public:
   int enemyOffsetX;
   int enemyOffsetY;
+  int enemyHealth;
   Enemy();
 
   void Draw();
+  void Move();
 
 private:
   SDL_Surface* enemySprite;

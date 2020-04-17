@@ -7,6 +7,7 @@ SDL_Window* window = NULL;
 SDL_Surface* surface = NULL;
 SDL_Surface* hello = NULL;
 SDL_Surface* player = NULL;
+int playerHealth = 100;
 
 // map variables
 int tileSize = 16;
@@ -50,6 +51,7 @@ uniform_int_distribution<> spawnIntervalDist(3000,10000);
 uniform_int_distribution<> spawnSidesRange(mapYCenter-mapHeight,mapYCenter+mapHeight);
 uniform_int_distribution<> edgePicker(0,3);
 uniform_int_distribution<> spawnTopsRange(mapXCenter-mapWidth,mapXCenter+mapWidth);
+uniform_int_distribution<> moveProbability(0,4);
 
 // Enemy constructor
 Enemy::Enemy()
@@ -94,6 +96,17 @@ void Enemy::Draw()
   SDL_Rect enemyDest = {enemyOffsetX-(tileSize/2), enemyOffsetY-(tileSize/2), enemyOffsetX+(tileSize/2), enemyOffsetY+(tileSize/2)};
   SDL_BlitSurface(enemySprite, NULL, surface, &enemyDest);
   SDL_UpdateWindowSurface(window);
+}
+
+void Enemy::Move()
+{
+  if(moveProbability(eng) < 3)
+    {
+      if(playerOffsetX > enemyOffsetX) {enemyOffsetX++;}
+      if(playerOffsetX < enemyOffsetX) {enemyOffsetX--;}
+      if(playerOffsetY > enemyOffsetY) {enemyOffsetY++;}
+      if(playerOffsetY < enemyOffsetY) {enemyOffsetY--;}
+    }
 }
   
 void spawnEnemy()
@@ -183,6 +196,10 @@ bool frameHandler()
 	    }
 	}
     }
+  for(int i=0; i<enemies.size(); i++)
+    {
+      enemies[i]->Move();
+    }
   return success;
 }
 
@@ -265,13 +282,13 @@ int main(int argc, char* argv[])
 	  validPos = false;
 	  playerOffsetX--;
 	}
-      cout << "map Top is " << mapTop << endl;
+      /*cout << "map Top is " << mapTop << endl;
       cout << "map Left is " << mapLeft << endl;
       cout << "map Bottom is " << mapBottom << endl;
       cout << "mapRight is " << mapRight << endl;
       cout << "player X is " << playerOffsetX << endl;
       cout << "player Y is " << playerOffsetY << endl;
-      cout << "pos is valid? " << validPos << endl;
+      cout << "pos is valid? " << validPos << endl;*/
       
       
       // Keypress bool handler
