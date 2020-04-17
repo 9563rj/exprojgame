@@ -22,6 +22,10 @@ int mapWidth = mapXPixels/2;
 int mapHeight = mapYPixels/2;
 int playerOffsetX = mapXCenter;
 int playerOffsetY = mapYCenter;
+int mapLeft = mapXCenter-mapWidth;
+int mapRight = mapXCenter+mapWidth;
+int mapTop = mapYCenter-mapHeight;
+int mapBottom = mapYCenter+mapHeight;
 
 // Frame limiting
 Uint32 startTime = 0;
@@ -238,12 +242,43 @@ int main(int argc, char* argv[])
       sKeyPress = keys[SDL_SCANCODE_S];
       dKeyPress = keys[SDL_SCANCODE_D];
       if(keys[SDL_SCANCODE_ESCAPE]) {gameRunning = false;}
+
+      // Collision
+      bool validPos = true;
+      if (playerOffsetY < mapTop+(tileSize/2)+1)
+	{
+	  validPos = false;
+	  playerOffsetY++;
+	}
+      if (playerOffsetX < mapLeft+(tileSize/2)+1)
+	{
+	  validPos = false;
+	  playerOffsetX++;
+	}
+      if (playerOffsetY > mapBottom-(tileSize/2)-1)
+	{
+	  validPos = false;
+	  playerOffsetY--;
+	}
+      if (playerOffsetX > mapRight-(tileSize/2)-1)
+	{
+	  validPos = false;
+	  playerOffsetX--;
+	}
+      cout << "map Top is " << mapTop << endl;
+      cout << "map Left is " << mapLeft << endl;
+      cout << "map Bottom is " << mapBottom << endl;
+      cout << "mapRight is " << mapRight << endl;
+      cout << "player X is " << playerOffsetX << endl;
+      cout << "player Y is " << playerOffsetY << endl;
+      cout << "pos is valid? " << validPos << endl;
+      
       
       // Keypress bool handler
-      if(wKeyPress) {playerOffsetY--;}
-      if(aKeyPress) {playerOffsetX--;}
-      if(sKeyPress) {playerOffsetY++;}
-      if(dKeyPress) {playerOffsetX++;}
+      if(wKeyPress && validPos) {playerOffsetY--;}
+      if(aKeyPress && validPos) {playerOffsetX--;}
+      if(sKeyPress && validPos) {playerOffsetY++;}
+      if(dKeyPress && validPos) {playerOffsetX++;}
       frameHandler();
       drawPlayer();
       drawEnemies();
