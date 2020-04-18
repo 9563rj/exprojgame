@@ -46,6 +46,9 @@ bool rightKeyPress = false;
 Uint32 lastSpawn = 0;
 Uint32 sinceSpawn = 0;
 Uint32 spawnInterval;
+Uint32 lastShoot = 0;
+Uint32 sinceShoot = 0;
+Uint32 shootInterval = 750;
 vector<Enemy*> enemies;
 vector<Arrow*> arrows;
 
@@ -131,6 +134,7 @@ void spawnArrow(int direction)
   cout << "spawnArrow called" << endl;
   Arrow* new_Arrow = new Arrow(direction);
   arrows.push_back(new_Arrow);
+  lastShoot = SDL_GetTicks();
 }
 
 void Arrow::Draw()
@@ -237,18 +241,15 @@ bool init()
       if(window == NULL)
 	{
 	  cout << "Window unable to be created. Error:" << SDL_GetError() << endl;
-	  success = false;
-	  
+	  success = false; 
 	}
       else
 	{
-
 	  // Grab surface
 	  surface = SDL_GetWindowSurface(window);
 	}
     }
   spawnInterval = spawnIntervalDist(eng);
-  cout << spawnInterval << endl;
   return success;
 }
 
@@ -318,6 +319,7 @@ int main(int argc, char* argv[])
     }
   while(gameRunning)
     {
+      bool validShoot = true;
       // Frame limiting init
       Uint32 delta = 0;
       if(!startTime)
@@ -330,13 +332,19 @@ int main(int argc, char* argv[])
 	}
       // Spawning timer
       Uint32 time = SDL_GetTicks();
-      cout << sinceSpawn << endl << spawnInterval << endl;
-      if (sinceSpawn > spawnInterval)
+      if(sinceSpawn > spawnInterval)
 	{
 	  spawnEnemy();
 	  spawnInterval = spawnIntervalDist(eng);
 	}
       sinceSpawn = time-lastSpawn;
+
+      sinceShoot = time-lastShoot;
+      cout << sinceShoot << endl << shootInterval << endl;
+      if(sinceShoot <= shootInterval)
+	{
+	  validShoot = false;
+	}
       
       // Input handler
       SDL_PumpEvents();
@@ -387,14 +395,15 @@ int main(int argc, char* argv[])
       if(aKeyPress && validPos) {playerOffsetX--;}
       if(sKeyPress && validPos) {playerOffsetY++;}
       if(dKeyPress && validPos) {playerOffsetX++;}
-      if(upKeyPress) {spawnArrow(0);}
-      if(leftKeyPress) {spawnArrow(1);}
-      if(downKeyPress) {spawnArrow(2);}
-      if(rightKeyPress) {spawnArrow(3);}
+      if(upKeyPress && validShoot) {spawnArrow(0);}
+      if(leftKeyPress && validShoot) {spawnArrow(1);}
+      if(downKeyPress && validShoot) {spawnArrow(2);}
+      if(rightKeyPress && validShoot) {spawnArrow(3);}
       frameHandler();
       drawPlayer();
       drawEnemies();
       drawArrows();
+      SDL_blit(surface);
 
       // Frame limiter
       if(delta<ticksFrame)
