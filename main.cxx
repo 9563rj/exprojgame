@@ -127,6 +127,7 @@ Arrow::Arrow(int direction)
       cout << "Failed to load one of the arrow sprites." << endl;
       exit(1);
     }
+  exist = true;
 }
 
 void spawnArrow(int direction)
@@ -150,19 +151,47 @@ void Arrow::Move()
   switch(arrowDirection)
     {
     case 0:
-      arrowOffsetY--;
+      if(arrowOffsetY > mapTop+(tileSize/2))
+	{
+	  arrowOffsetY--;
+	}
+      else
+	{
+	  exist = false;
+	}
       break;
 
     case 1:
-      arrowOffsetX--;
+      if(arrowOffsetX > mapLeft+(tileSize/2))
+	{
+	  arrowOffsetX--;
+	}
+      else
+	{
+	  exist = false;
+	}
       break;
 
     case 2:
-      arrowOffsetY++;
+      if(arrowOffsetY < mapBottom-(tileSize/2))
+	{
+	  arrowOffsetY++;
+	}
+      else
+	{
+	  exist = false;
+	}
       break;
 
     case 3:
-      arrowOffsetX++;
+      if(arrowOffsetX < mapRight-(tileSize/2))
+	{
+	  arrowOffsetX++;
+	}
+      else
+	{
+	  exist = false;
+	}
       break;
     }
 }
@@ -209,6 +238,7 @@ void drawArrows()
   vector<Arrow*>::iterator it;
   for(it=arrows.begin(); it!=arrows.end(); it++)
     {
+      cout << "drawing arrow" << endl;
       Arrow* arrow = *it;
       arrow->Draw();
     }
@@ -287,6 +317,17 @@ bool frameHandler()
   for(int i=0; i<arrows.size(); i++)
     {
       arrows[i]->Move();
+    }
+  vector<Arrow*>::iterator it;
+  for(it=arrows.begin(); it!=arrows.end(); it++)
+    {
+      Arrow* arrow = *it;
+      if(arrow->exist == false)
+	{
+	  cout << "deleting arrow" << endl;
+	  delete arrow;
+	  arrows.erase(it--);
+	}
     }
   return success;
 }

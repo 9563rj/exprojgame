@@ -32,6 +32,7 @@ class Arrow
   int arrowOffsetX;
   int arrowOffsetY;
   int arrowDirection;
+  bool exist;
   Arrow(int direction);
 
   void Draw();
