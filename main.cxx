@@ -37,12 +37,17 @@ bool wKeyPress = false;
 bool aKeyPress = false;
 bool sKeyPress = false;
 bool dKeyPress = false;
+bool upKeyPress = false;
+bool leftKeyPress = false;
+bool downKeyPress = false;
+bool rightKeyPress = false;
 
 // Spawning
 Uint32 lastSpawn = 0;
 Uint32 sinceSpawn = 0;
 Uint32 spawnInterval;
 vector<Enemy*> enemies;
+vector<Arrow*> arrows;
 
 // Random engine initializer
 random_device rd;
@@ -90,6 +95,74 @@ Enemy::Enemy()
     }
 }
 
+// Arrow constructor
+Arrow::Arrow(int direction)
+{
+  arrowOffsetX = playerOffsetX;
+  arrowOffsetY = playerOffsetY;
+  arrowDirection = direction;
+  switch(arrowDirection)
+    {
+    case 0:
+      arrowSprite = SDL_LoadBMP("arrow0.bmp");
+      break;
+
+    case 1:
+      arrowSprite = SDL_LoadBMP("arrow1.bmp");
+      break;
+
+    case 2:
+      arrowSprite = SDL_LoadBMP("arrow2.bmp");
+      break;
+
+    case 3:
+      arrowSprite = SDL_LoadBMP("arrow3.bmp");
+      break;
+    }
+  if(arrowSprite == NULL)
+    {
+      cout << "Failed to load one of the arrow sprites." << endl;
+      exit(1);
+    }
+}
+
+void spawnArrow(int direction)
+{
+  cout << "spawnArrow called" << endl;
+  Arrow* new_Arrow = new Arrow(direction);
+  arrows.push_back(new_Arrow);
+}
+
+void Arrow::Draw()
+{
+  // Apply arrow
+  SDL_Rect arrowDest = {arrowOffsetX-(tileSize/2), arrowOffsetY-(tileSize/2), arrowOffsetX+(tileSize/2), arrowOffsetY+(tileSize/2)};
+  SDL_BlitSurface(arrowSprite, NULL, surface, &arrowDest);
+  SDL_UpdateWindowSurface(window);
+}
+
+void Arrow::Move()
+{
+  switch(arrowDirection)
+    {
+    case 0:
+      arrowOffsetY--;
+      break;
+
+    case 1:
+      arrowOffsetX--;
+      break;
+
+    case 2:
+      arrowOffsetY++;
+      break;
+
+    case 3:
+      arrowOffsetX++;
+      break;
+    }
+}
+
 void Enemy::Draw()
 {
   // Apply enemy
@@ -127,6 +200,16 @@ void drawEnemies()
     }
 }
 
+void drawArrows()
+{
+  vector<Arrow*>::iterator it;
+  for(it=arrows.begin(); it!=arrows.end(); it++)
+    {
+      Arrow* arrow = *it;
+      arrow->Draw();
+    }
+}
+
 bool drawPlayer()
 {
   // Apply player
@@ -149,7 +232,7 @@ bool init()
   else
     {
       // Create window
-      window = SDL_CreateWindow("TestGraphics", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, winXMax, winYMax, SDL_WINDOW_SHOWN);
+      window = SDL_CreateWindow("The Crusade for Jimtheism", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, winXMax, winYMax, SDL_WINDOW_SHOWN);
       // Window debug
       if(window == NULL)
 	{
@@ -199,6 +282,10 @@ bool frameHandler()
   for(int i=0; i<enemies.size(); i++)
     {
       enemies[i]->Move();
+    }
+  for(int i=0; i<arrows.size(); i++)
+    {
+      arrows[i]->Move();
     }
   return success;
 }
@@ -258,6 +345,10 @@ int main(int argc, char* argv[])
       aKeyPress = keys[SDL_SCANCODE_A];
       sKeyPress = keys[SDL_SCANCODE_S];
       dKeyPress = keys[SDL_SCANCODE_D];
+      upKeyPress = keys[SDL_SCANCODE_UP];
+      leftKeyPress = keys[SDL_SCANCODE_LEFT];
+      downKeyPress = keys[SDL_SCANCODE_DOWN];
+      rightKeyPress = keys[SDL_SCANCODE_RIGHT];
       if(keys[SDL_SCANCODE_ESCAPE]) {gameRunning = false;}
 
       // Collision
@@ -296,9 +387,14 @@ int main(int argc, char* argv[])
       if(aKeyPress && validPos) {playerOffsetX--;}
       if(sKeyPress && validPos) {playerOffsetY++;}
       if(dKeyPress && validPos) {playerOffsetX++;}
+      if(upKeyPress) {spawnArrow(0);}
+      if(leftKeyPress) {spawnArrow(1);}
+      if(downKeyPress) {spawnArrow(2);}
+      if(rightKeyPress) {spawnArrow(3);}
       frameHandler();
       drawPlayer();
       drawEnemies();
+      drawArrows();
 
       // Frame limiter
       if(delta<ticksFrame)

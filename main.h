@@ -13,17 +13,32 @@ const short ticksFrame = 32; // fpsLimit
 
 class Enemy
 {
-public:
+ public:
   int enemyOffsetX;
   int enemyOffsetY;
   int enemyHealth;
   Enemy();
+  
+  void Draw();
+  void Move();
+  
+ private:
+  SDL_Surface* enemySprite;
+};
+
+class Arrow
+{
+ public:
+  int arrowOffsetX;
+  int arrowOffsetY;
+  int arrowDirection;
+  Arrow(int direction);
 
   void Draw();
   void Move();
 
-private:
-  SDL_Surface* enemySprite;
+ private:
+  SDL_Surface* arrowSprite;
 };
 
 #endif // MAIN_H
