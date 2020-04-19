@@ -5,6 +5,7 @@
 #include <iostream>
 #include <random>
 #include <vector>
+using namespace std;
 
 const int winXMax = 640;
 const int winYMax = 480;
@@ -16,11 +17,11 @@ class Enemy
  public:
   int enemyOffsetX;
   int enemyOffsetY;
-  int enemyHealth;
   Enemy();
   
   void Draw();
   void Move();
+  void Hit(vector<Enemy*>::iterator& it);
   
  private:
   SDL_Surface* enemySprite;

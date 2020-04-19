@@ -8,6 +8,7 @@ SDL_Surface* surface = NULL;
 SDL_Surface* hello = NULL;
 SDL_Surface* player = NULL;
 int playerHealth = 100;
+int score = 0;
 
 // map variables
 int tileSize = 16;
@@ -194,6 +195,24 @@ void Arrow::Move()
 	}
       break;
     }
+  vector<Enemy*>::iterator it;
+  for(it=enemies.begin(); it!=enemies.end(); it++)
+    {
+      Enemy* enemy = *it;
+      if(arrowOffsetX > enemy->enemyOffsetX-tileSize && arrowOffsetX < enemy->enemyOffsetX+tileSize && arrowOffsetY > enemy->enemyOffsetY-tileSize && arrowOffsetY < enemy->enemyOffsetY+tileSize)
+	{
+	  enemy->Hit(it);
+	  it--;
+	  exist = false;
+	}
+    }
+}
+
+void Enemy::Hit(vector<Enemy*>::iterator& it)
+{
+  score++;
+  enemies.erase(it);
+  delete this;
 }
 
 void Enemy::Draw()
