@@ -10,6 +10,12 @@ SDL_Surface* player = NULL;
 int playerHealth = 100;
 int score = 0;
 
+// Waves
+bool wave = true;
+int waveCount = 0;
+int waveWait = 0;
+int spawnDecrease = 0;
+
 // map variables
 int tileSize = 16;
 int mapX = winXMax/tileSize/2-1;
@@ -392,10 +398,35 @@ int main(int argc, char* argv[])
 	}
       // Spawning timer
       Uint32 time = SDL_GetTicks();
-      if(sinceSpawn > spawnInterval)
+      if(wave)
 	{
-	  spawnEnemy();
-	  spawnInterval = spawnIntervalDist(eng);
+	  cout << "wave is true, running spawn check" << endl;
+	  if(sinceSpawn > spawnInterval)
+	    {
+	      cout << "spawn check passed" << endl;
+	      spawnEnemy();
+	      spawnInterval = spawnIntervalDist(eng)-spawnDecrease;
+	      if(spawnInterval < 0) {spawnInterval = 0;}
+	      waveCount++;
+	    }
+	}
+      if(waveCount == 20)
+	{
+	  cout << "wave max reached" << endl;
+	  waveCount = 0;
+	  wave = false;
+	  spawnDecrease += 750;
+	}
+      if(wave == false)
+	{
+	  cout << "wave is false, waiting" << endl;
+	  waveWait++;
+	}
+      if(waveWait >= 1000)
+	{
+	  cout << "end of wait" << endl;
+	  wave = true;
+	  waveWait = 0;
 	}
       sinceSpawn = time-lastSpawn;
 
@@ -441,14 +472,6 @@ int main(int argc, char* argv[])
 	  validPos = false;
 	  playerOffsetX--;
 	}
-      /*cout << "map Top is " << mapTop << endl;
-      cout << "map Left is " << mapLeft << endl;
-      cout << "map Bottom is " << mapBottom << endl;
-      cout << "mapRight is " << mapRight << endl;
-      cout << "player X is " << playerOffsetX << endl;
-      cout << "player Y is " << playerOffsetY << endl;
-      cout << "pos is valid? " << validPos << endl;*/
-      
       
       // Keypress bool handler
       if(wKeyPress && validPos) {playerOffsetY--;}
