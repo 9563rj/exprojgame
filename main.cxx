@@ -7,7 +7,8 @@ SDL_Window* window = NULL;
 SDL_Surface* surface = NULL;
 SDL_Surface* hello = NULL;
 SDL_Surface* player = NULL;
-int playerHealth = 100;
+int playerHealth = 3;
+int playerInvincibilityFrames = 0;
 int score = 0;
 
 // Waves
@@ -67,6 +68,22 @@ uniform_int_distribution<> spawnSidesRange(mapYCenter-mapHeight,mapYCenter+mapHe
 uniform_int_distribution<> edgePicker(0,3);
 uniform_int_distribution<> spawnTopsRange(mapXCenter-mapWidth,mapXCenter+mapWidth);
 uniform_int_distribution<> moveProbability(0,4);
+
+void gameOver()
+{
+  gameRunning = false;
+}
+
+void playerHit()
+{
+  cout << "Player was hit. Health is " << playerHealth << endl;
+  playerHealth--;
+  playerInvincibilityFrames = 100;
+  if(playerHealth <= 0)
+    {
+      gameOver();
+    }
+}
 
 // Enemy constructor
 Enemy::Enemy()
@@ -354,6 +371,20 @@ bool frameHandler()
 	  arrows.erase(it--);
 	}
     }
+  if(playerInvincibilityFrames <= 0)
+    {
+      vector<Enemy*>::iterator it2;
+      for(it2=enemies.begin(); it2!=enemies.end(); it2++)
+	{
+	  Enemy* enemy = *it2;
+	  if(playerOffsetX > enemy->enemyOffsetX-tileSize && playerOffsetX < enemy->enemyOffsetX+tileSize && playerOffsetY > enemy->enemyOffsetY-tileSize && playerOffsetY < enemy->enemyOffsetY+tileSize)
+	    {
+	      playerHit();
+	    }
+	}
+    }
+  playerInvincibilityFrames--;
+  cout << "invincibility frames are " << playerInvincibilityFrames << endl;
   return success;
 }
 
