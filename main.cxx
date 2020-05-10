@@ -7,6 +7,7 @@ SDL_Window* window = NULL;
 SDL_Surface* surface = NULL;
 SDL_Surface* hello = NULL;
 SDL_Surface* player = NULL;
+SDL_Surface* heart = NULL;
 int playerHealth = 3;
 int playerInvincibilityFrames = 0;
 int score = 0;
@@ -347,6 +348,7 @@ bool frameHandler()
   // Load bitmaps
   hello = SDL_LoadBMP("grass.bmp");
   player = SDL_LoadBMP("player.bmp");
+  heart = SDL_LoadBMP("heart.bmp");
   
   // Debug
   if(hello == NULL || player == NULL)
@@ -403,6 +405,22 @@ bool frameHandler()
   SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
   SDL_Rect sidebarRect = {sidebarX, sidebarY, sidebarWidth, sidebarHeight};
   SDL_RenderFillRect(gRenderer, &sidebarRect);
+  if(playerHealth >= 1)
+    {
+      SDL_Rect heartDstRect = {sidebarX, sidebarY, sidebarX+tileSize, sidebarY+tileSize};
+      SDL_BlitSurface(heart, NULL, surface, &heartDstRect);
+      if(playerHealth >= 2)
+	{
+	  SDL_Rect heartDstRect2 = {heartDstRect.x+tileSize, heartDstRect.y, heartDstRect.w, heartDstRect.h};
+	  SDL_BlitSurface(heart, NULL, surface, &heartDstRect2);
+	  if(playerHealth >= 3)
+	    {
+	      SDL_Rect heartDstRect3 = {heartDstRect2.x+tileSize, heartDstRect2.y, heartDstRect2.w, heartDstRect2.h};
+	      SDL_BlitSurface(heart, NULL, surface, &heartDstRect3);
+	    }
+	}
+      SDL_UpdateWindowSurface(window);
+    }
   return success;
 }
 
