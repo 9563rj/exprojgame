@@ -10,6 +10,7 @@ SDL_Surface* player = NULL;
 int playerHealth = 3;
 int playerInvincibilityFrames = 0;
 int score = 0;
+SDL_Renderer *gRenderer = NULL;
 
 // Waves
 bool wave = true;
@@ -35,6 +36,12 @@ int mapLeft = mapXCenter-mapWidth;
 int mapRight = mapXCenter+mapWidth;
 int mapTop = mapYCenter-mapHeight;
 int mapBottom = mapYCenter+mapHeight;
+int sidebarX = tileSize/2;
+int sidebarY = tileSize/2;
+int sidebarWidthInt = mapWidth*2;
+int sidebarHeightInt = mapHeight*2;
+Uint32 sidebarWidth = sidebarWidthInt;
+Uint32 sidebarHeight = sidebarHeightInt;
 
 // Frame limiting
 Uint32 startTime = 0;
@@ -321,6 +328,13 @@ bool init()
 	  surface = SDL_GetWindowSurface(window);
 	}
     }
+  gRenderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
+  if (!gRenderer)
+    {
+      cout << "Failed to initialize renderer with error " << SDL_GetError();
+      exit(-1);
+    }
+  
   spawnInterval = spawnIntervalDist(eng);
   return success;
 }
@@ -385,6 +399,10 @@ bool frameHandler()
     }
   playerInvincibilityFrames--;
   cout << "invincibility frames are " << playerInvincibilityFrames << endl;
+
+  SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+  SDL_Rect sidebarRect = {sidebarX, sidebarY, sidebarWidth, sidebarHeight};
+  SDL_RenderFillRect(gRenderer, &sidebarRect);
   return success;
 }
 
