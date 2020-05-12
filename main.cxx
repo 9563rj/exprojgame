@@ -13,6 +13,24 @@ int playerInvincibilityFrames = 0;
 int score = 0;
 SDL_Renderer *gRenderer = NULL;
 
+// Music
+int songState = 0;
+bool songPlaying = false;
+Mix_Music *TheLastStand = NULL;
+Mix_Music *PrimoVictoria = NULL;
+Mix_Music *Bismarck = NULL;
+Mix_Music *GhostInTheTrenches = NULL;
+Mix_Music *BackInControl = NULL;
+Mix_Music *DevilDogs = NULL;
+Mix_Music *AttackOfTheDeadMen = NULL;
+Mix_Music *SevenPillarsOfWisdom = NULL;
+Mix_Music *GreatWar = NULL;
+Mix_Music *PanzerBattalion = NULL;
+Mix_Music *Wolfpack = NULL;
+
+Mix_Chunk *killEffect = NULL;
+Mix_Chunk *hurtSound = NULL;
+
 // Waves
 bool wave = true;
 int waveCount = 0;
@@ -76,10 +94,77 @@ uniform_int_distribution<> spawnSidesRange(mapYCenter-mapHeight,mapYCenter+mapHe
 uniform_int_distribution<> edgePicker(0,3);
 uniform_int_distribution<> spawnTopsRange(mapXCenter-mapWidth,mapXCenter+mapWidth);
 uniform_int_distribution<> moveProbability(0,4);
+uniform_int_distribution<> songPicker(0,2);
 
 void gameOver()
 {
   gameRunning = false;
+}
+
+bool musicHandler()
+{
+  songPlaying = Mix_PlayingMusic();
+  if(!songPlaying)
+    {
+      switch(songState)
+	{
+	case 0:
+	  switch(songPicker(eng))
+	    {
+	    case 0:
+	      Mix_PlayMusic(Bismarck, 0);
+	      break;
+
+	    case 1:
+	      Mix_PlayMusic(GhostInTheTrenches, 0);
+	      break;
+
+	    case 2:
+	      Mix_PlayMusic(BackInControl, 0);
+	      break;
+	    }
+	  break;
+
+	case 1:
+	  switch(songPicker(eng))
+	    {
+	    case 0:
+	      Mix_PlayMusic(DevilDogs, 0);
+	      break;
+
+	    case 1:
+	      Mix_PlayMusic(AttackOfTheDeadMen, 0);
+	      break;
+
+	    case 2:
+	      Mix_PlayMusic(SevenPillarsOfWisdom, 0);
+	      break;
+	    }
+	  break;
+
+	case 2:
+	  switch(songPicker(eng))
+	    {
+	    case 0:
+	      Mix_PlayMusic(GreatWar, 0);
+	      break;
+
+	    case 1:
+	      Mix_PlayMusic(PanzerBattalion, 0);
+	      break;
+
+	    case 2:
+	      Mix_PlayMusic(Wolfpack, 0);
+	      break;
+	    }
+	  break;
+	}
+      if(songState == 2)
+	{
+	  songState = 0;
+	}
+      else {songState++;}
+    }
 }
 
 void playerHit()
@@ -87,6 +172,7 @@ void playerHit()
   cout << "Player was hit. Health is " << playerHealth << endl;
   playerHealth--;
   playerInvincibilityFrames = 100;
+  Mix_PlayChannel(-1, hurtSound, 0);
   if(playerHealth <= 0)
     {
       gameOver();
@@ -242,6 +328,7 @@ void Arrow::Move()
 void Enemy::Hit(vector<Enemy*>::iterator& it)
 {
   score++;
+  Mix_PlayChannel(-1, killEffect, 0);
   enemies.erase(it);
   delete this;
 }
@@ -308,7 +395,7 @@ bool init()
   bool success = true;
 
   // SDL init
-  if(SDL_Init(SDL_INIT_VIDEO)<0)
+  if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)<0)
     {
       cout << "SDL could not initialize. Error:" << SDL_GetError() << endl;
       success = false;
@@ -329,13 +416,45 @@ bool init()
 	  surface = SDL_GetWindowSurface(window);
 	}
     }
+  
   gRenderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
-  if (!gRenderer)
+  if(!gRenderer)
     {
       cout << "Failed to initialize renderer with error " << SDL_GetError();
       exit(-1);
     }
+
+  if(Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048)<0)
+    {
+      cout << "Mixer failed to initialize with error " << Mix_GetError() << endl;
+      exit(-1);
+    }
+
+  TheLastStand = Mix_LoadMUS("TheLastStand.wav");
+  PrimoVictoria = Mix_LoadMUS("PrimoVictoria.wav");
+  Bismarck = Mix_LoadMUS("Bismarck.wav");
+  GhostInTheTrenches = Mix_LoadMUS("GhostInTheTrenches.wav");
+  BackInControl = Mix_LoadMUS("BackInControl.wav");
+  DevilDogs = Mix_LoadMUS("DevilDogs.wav");
+  AttackOfTheDeadMen = Mix_LoadMUS("AttackOfTheDeadMen.wav");
+  SevenPillarsOfWisdom = Mix_LoadMUS("SevenPillarsOfWisdom.wav");
+  GreatWar = Mix_LoadMUS("GreatWar.wav");
+  PanzerBattalion = Mix_LoadMUS("PanzerBattalion.wav");
+  Wolfpack = Mix_LoadMUS("Wolfpack.wav");
   
+  killEffect = Mix_LoadWAV("Hurt.wav");
+  if(!killEffect)
+    {
+      cout << "Could not load Hurt.wav with error " << Mix_GetError() << endl;
+      exit(-1);
+    }
+  hurtSound = Mix_LoadWAV("Jav.wav");
+  if(!hurtSound)
+    {
+      cout << "Could not load Jav.wav with error " << Mix_GetError() << endl;
+      exit(-1);
+    }
+
   spawnInterval = spawnIntervalDist(eng);
   return success;
 }
@@ -550,6 +669,7 @@ int main(int argc, char* argv[])
       if(downKeyPress && validShoot) {spawnArrow(2);}
       if(rightKeyPress && validShoot) {spawnArrow(3);}
       frameHandler();
+      musicHandler();
       drawPlayer();
       drawEnemies();
       drawArrows();
