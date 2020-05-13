@@ -8,6 +8,7 @@ SDL_Surface* surface = NULL;
 SDL_Surface* hello = NULL;
 SDL_Surface* player = NULL;
 SDL_Surface* heart = NULL;
+SDL_Surface* splashSprite = NULL;
 int playerHealth = 3;
 int playerInvincibilityFrames = 0;
 int score = 0;
@@ -95,6 +96,7 @@ uniform_int_distribution<> edgePicker(0,3);
 uniform_int_distribution<> spawnTopsRange(mapXCenter-mapWidth,mapXCenter+mapWidth);
 uniform_int_distribution<> moveProbability(0,4);
 uniform_int_distribution<> songPicker(0,2);
+uniform_int_distribution<> titleTrackPicker(0,1);
 
 void gameOver()
 {
@@ -165,6 +167,34 @@ bool musicHandler()
 	}
       else {songState++;}
     }
+}
+
+void splashScreen()
+{
+  bool splashScreenRunning = true;
+  SDL_Rect splashSpriteDest = {0, 0, winXMax, winYMax};
+  SDL_BlitSurface(splashSprite, NULL, surface, &splashSpriteDest);
+  SDL_UpdateWindowSurface(window);
+  switch(titleTrackPicker(eng))
+    {
+    case 0:
+      Mix_PlayMusic(TheLastStand, 0);
+      break;
+
+    case 1:
+      Mix_PlayMusic(PrimoVictoria, 0);
+      break;
+    }
+  while(splashScreenRunning)
+    {
+      SDL_PumpEvents();
+      const Uint8* keys = SDL_GetKeyboardState(NULL);
+      if(keys[SDL_SCANCODE_RETURN]) {splashScreenRunning = false;}
+    }
+  Mix_HaltMusic();
+  SDL_Rect black = {0, 0, winXMax, winYMax};
+  SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0x00, 0xFF);
+  SDL_RenderFillRect(gRenderer, &black);
 }
 
 void playerHit()
@@ -429,7 +459,8 @@ bool init()
       cout << "Mixer failed to initialize with error " << Mix_GetError() << endl;
       exit(-1);
     }
-
+  
+  // Load music
   TheLastStand = Mix_LoadMUS("TheLastStand.wav");
   PrimoVictoria = Mix_LoadMUS("PrimoVictoria.wav");
   Bismarck = Mix_LoadMUS("Bismarck.wav");
@@ -454,8 +485,19 @@ bool init()
       cout << "Could not load Jav.wav with error " << Mix_GetError() << endl;
       exit(-1);
     }
-
+  
+  // Load bitmaps
+  hello = SDL_LoadBMP("grass.bmp");
+  player = SDL_LoadBMP("player.bmp");
+  heart = SDL_LoadBMP("heart.bmp");
+  splashSprite = SDL_LoadBMP("splashSprite.bmp");
+  if(splashSprite == NULL)
+    {
+      cout << "Failed to load splash sprite." << endl;
+      exit(-1);
+    }
   spawnInterval = spawnIntervalDist(eng);
+  
   return success;
 }
 
@@ -463,11 +505,6 @@ bool frameHandler()
 {
   // Init success flag
   bool success = true;
-
-  // Load bitmaps
-  hello = SDL_LoadBMP("grass.bmp");
-  player = SDL_LoadBMP("player.bmp");
-  heart = SDL_LoadBMP("heart.bmp");
   
   // Debug
   if(hello == NULL || player == NULL)
@@ -562,13 +599,7 @@ int main(int argc, char* argv[])
     {
       cout << "Failed to initialize." << endl;
     }
-  else
-    {
-      if(!frameHandler())
-	{
-	  cout << "Failed to load image." << endl;
-	}
-    }
+  splashScreen();
   while(gameRunning)
     {
       bool validShoot = true;
