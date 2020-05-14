@@ -2,6 +2,7 @@
 using namespace std;
 
 bool gameRunning = true;
+bool gameOverRestart = false;
 SDL_Event event;
 SDL_Window* window = NULL;
 SDL_Surface* surface = NULL;
@@ -9,6 +10,7 @@ SDL_Surface* hello = NULL;
 SDL_Surface* player = NULL;
 SDL_Surface* heart = NULL;
 SDL_Surface* splashSprite = NULL;
+SDL_Surface* deathSprite = NULL;
 int playerHealth = 3;
 int playerInvincibilityFrames = 0;
 int score = 0;
@@ -28,9 +30,11 @@ Mix_Music *SevenPillarsOfWisdom = NULL;
 Mix_Music *GreatWar = NULL;
 Mix_Music *PanzerBattalion = NULL;
 Mix_Music *Wolfpack = NULL;
+Mix_Music *ToHellAndBack = NULL;
 
 Mix_Chunk *killEffect = NULL;
 Mix_Chunk *hurtSound = NULL;
+Mix_Chunk *deathEffect = NULL;
 
 // Waves
 bool wave = true;
@@ -100,7 +104,25 @@ uniform_int_distribution<> titleTrackPicker(0,1);
 
 void gameOver()
 {
-  gameRunning = false;
+  SDL_Rect deathScreenDest = {0, 0, winXMax, winYMax};
+  SDL_BlitSurface(deathSprite, NULL, surface, &deathScreenDest);
+  SDL_UpdateWindowSurface(window);
+  Mix_PlayChannel(-1, deathEffect, 0);
+  Mix_PlayMusic(ToHellAndBack, -1);
+  bool gameOverRunning = true;
+  while(gameOverRunning)
+    {
+      SDL_PumpEvents();
+      const Uint8* keys = SDL_GetKeyboardState(NULL);
+      if(keys[SDL_SCANCODE_ESCAPE])
+	{
+	  gameOverRunning = false;
+	  gameRunning = false;
+	}
+    }
+  SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0x00, 0xFF);
+  SDL_RenderFillRect(gRenderer, &deathScreenDest);
+  Mix_HaltMusic();
 }
 
 bool musicHandler()
@@ -472,6 +494,7 @@ bool init()
   GreatWar = Mix_LoadMUS("GreatWar.wav");
   PanzerBattalion = Mix_LoadMUS("PanzerBattalion.wav");
   Wolfpack = Mix_LoadMUS("Wolfpack.wav");
+  ToHellAndBack = Mix_LoadMUS("ToHellAndBack.wav");
   
   killEffect = Mix_LoadWAV("Hurt.wav");
   if(!killEffect)
@@ -485,12 +508,14 @@ bool init()
       cout << "Could not load Jav.wav with error " << Mix_GetError() << endl;
       exit(-1);
     }
+  deathEffect = Mix_LoadWAV("deathEffect.wav");
   
   // Load bitmaps
   hello = SDL_LoadBMP("grass.bmp");
   player = SDL_LoadBMP("player.bmp");
   heart = SDL_LoadBMP("heart.bmp");
   splashSprite = SDL_LoadBMP("splashSprite.bmp");
+  deathSprite = SDL_LoadBMP("deathSprite.bmp");
   if(splashSprite == NULL)
     {
       cout << "Failed to load splash sprite." << endl;
@@ -595,6 +620,7 @@ void cleanup()
 
 int main(int argc, char* argv[])
 {
+ START:
   if(!init())
     {
       cout << "Failed to initialize." << endl;
