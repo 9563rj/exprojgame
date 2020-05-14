@@ -11,6 +11,7 @@ SDL_Surface* player = NULL;
 SDL_Surface* heart = NULL;
 SDL_Surface* splashSprite = NULL;
 SDL_Surface* deathSprite = NULL;
+SDL_Surface* waveIndicator = NULL;
 int playerHealth = 3;
 int playerInvincibilityFrames = 0;
 int score = 0;
@@ -101,6 +102,7 @@ uniform_int_distribution<> spawnTopsRange(mapXCenter-mapWidth,mapXCenter+mapWidt
 uniform_int_distribution<> moveProbability(0,4);
 uniform_int_distribution<> songPicker(0,2);
 uniform_int_distribution<> titleTrackPicker(0,1);
+uniform_int_distribution<> scoreAmount(10,20);
 
 void gameOver()
 {
@@ -221,7 +223,6 @@ void splashScreen()
 
 void playerHit()
 {
-  cout << "Player was hit. Health is " << playerHealth << endl;
   playerHealth--;
   playerInvincibilityFrames = 100;
   Mix_PlayChannel(-1, hurtSound, 0);
@@ -237,25 +238,21 @@ Enemy::Enemy()
   switch(edgePicker(eng))
     {
     case 0:
-      cout << "Spawning edge O..." << endl;
       enemyOffsetX = mapXCenter-mapWidth+(tileSize/2);
       enemyOffsetY = spawnSidesRange(eng);
       break;
 
     case 1:
-      cout << "Spawning edge 1..." << endl;
       enemyOffsetX = spawnTopsRange(eng);
       enemyOffsetY = mapYCenter-mapHeight+(tileSize/2);
       break;
 
     case 2:
-      cout << "Spawning edge 2..." << endl;
       enemyOffsetX = mapXCenter+mapWidth-(tileSize/2);
       enemyOffsetY = spawnSidesRange(eng);
       break;
 
     case 3:
-      cout << "Spawning edge 3..." << endl;
       enemyOffsetX = spawnTopsRange(eng);
       enemyOffsetY = mapYCenter+mapHeight-(tileSize/2);
       break;
@@ -302,7 +299,6 @@ Arrow::Arrow(int direction)
 
 void spawnArrow(int direction)
 {
-  cout << "spawnArrow called" << endl;
   Arrow* new_Arrow = new Arrow(direction);
   arrows.push_back(new_Arrow);
   lastShoot = SDL_GetTicks();
@@ -313,7 +309,7 @@ void Arrow::Draw()
   // Apply arrow
   SDL_Rect arrowDest = {arrowOffsetX-(tileSize/2), arrowOffsetY-(tileSize/2), arrowOffsetX+(tileSize/2), arrowOffsetY+(tileSize/2)};
   SDL_BlitSurface(arrowSprite, NULL, surface, &arrowDest);
-  SDL_UpdateWindowSurface(window);
+   
 }
 
 void Arrow::Move()
@@ -379,7 +375,8 @@ void Arrow::Move()
 
 void Enemy::Hit(vector<Enemy*>::iterator& it)
 {
-  score++;
+  score += scoreAmount(eng);
+  cout << score << endl;
   Mix_PlayChannel(-1, killEffect, 0);
   enemies.erase(it);
   delete this;
@@ -390,7 +387,7 @@ void Enemy::Draw()
   // Apply enemy
   SDL_Rect enemyDest = {enemyOffsetX-(tileSize/2), enemyOffsetY-(tileSize/2), enemyOffsetX+(tileSize/2), enemyOffsetY+(tileSize/2)};
   SDL_BlitSurface(enemySprite, NULL, surface, &enemyDest);
-  SDL_UpdateWindowSurface(window);
+   
 }
 
 void Enemy::Move()
@@ -406,7 +403,6 @@ void Enemy::Move()
   
 void spawnEnemy()
 {
-  cout << "SpawnEnemy called" << endl;
   Enemy* new_Enemy = new Enemy();
   enemies.push_back(new_Enemy);
   lastSpawn = SDL_GetTicks();
@@ -427,7 +423,6 @@ void drawArrows()
   vector<Arrow*>::iterator it;
   for(it=arrows.begin(); it!=arrows.end(); it++)
     {
-      cout << "drawing arrow" << endl;
       Arrow* arrow = *it;
       arrow->Draw();
     }
@@ -438,7 +433,7 @@ bool drawPlayer()
   // Apply player
   SDL_Rect playerDest = {playerOffsetX-(tileSize/2), playerOffsetY-(tileSize/2), playerOffsetX+(tileSize/2), playerOffsetY+(tileSize/2)};
   SDL_BlitSurface(player, NULL, surface, &playerDest);
-  SDL_UpdateWindowSurface(window);
+   
 }
 
 bool init()
@@ -516,6 +511,7 @@ bool init()
   heart = SDL_LoadBMP("heart.bmp");
   splashSprite = SDL_LoadBMP("splashSprite.bmp");
   deathSprite = SDL_LoadBMP("deathSprite.bmp");
+  waveIndicator = SDL_LoadBMP("waveIndicator.bmp");
   if(splashSprite == NULL)
     {
       cout << "Failed to load splash sprite." << endl;
@@ -563,7 +559,6 @@ bool frameHandler()
       Arrow* arrow = *it;
       if(arrow->exist == false)
 	{
-	  cout << "deleting arrow" << endl;
 	  delete arrow;
 	  arrows.erase(it--);
 	}
@@ -581,7 +576,6 @@ bool frameHandler()
 	}
     }
   playerInvincibilityFrames--;
-  cout << "invincibility frames are " << playerInvincibilityFrames << endl;
 
   SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
   SDL_Rect sidebarRect = {sidebarX, sidebarY, sidebarWidth, sidebarHeight};
@@ -600,13 +594,25 @@ bool frameHandler()
 	      SDL_BlitSurface(heart, NULL, surface, &heartDstRect3);
 	    }
 	}
-      SDL_UpdateWindowSurface(window);
+    }
+  if(wave)
+    {
+      SDL_Rect waveIndicatorDest = {sidebarX+tileSize/2, sidebarY+(sidebarHeight/2-32), sidebarWidth-tileSize, 64};
+      SDL_SetRenderDrawColor(gRenderer, 0x00, 0xFF, 0x00, 0xFF);
+      SDL_RenderFillRect(gRenderer, &waveIndicatorDest);
+    }
+  else
+    {
+      SDL_Rect waveIndicatorDest = {sidebarX+tileSize/2, sidebarY+(sidebarHeight/2-32), sidebarWidth-tileSize, 64};
+      SDL_SetRenderDrawColor(gRenderer, 0xFF, 0x00, 0x00, 0xFF);
+      SDL_RenderFillRect(gRenderer, &waveIndicatorDest);
     }
   return success;
 }
 
 void cleanup()
 {
+  cout << "Your final score is " << score << endl;
   // Deallocate surfaces
   SDL_FreeSurface(hello);
   hello = NULL;
@@ -616,6 +622,7 @@ void cleanup()
   window = NULL;
 
   SDL_Quit();
+  Mix_Quit();
 }
 
 int main(int argc, char* argv[])
@@ -643,10 +650,8 @@ int main(int argc, char* argv[])
       Uint32 time = SDL_GetTicks();
       if(wave)
 	{
-	  cout << "wave is true, running spawn check" << endl;
 	  if(sinceSpawn > spawnInterval)
 	    {
-	      cout << "spawn check passed" << endl;
 	      spawnEnemy();
 	      spawnInterval = spawnIntervalDist(eng)-spawnDecrease;
 	      if(spawnInterval < 0) {spawnInterval = 0;}
@@ -655,31 +660,29 @@ int main(int argc, char* argv[])
 	}
       if(waveCount == 20)
 	{
-	  cout << "wave max reached" << endl;
 	  waveCount = 0;
 	  wave = false;
 	  spawnDecrease += 750;
 	}
       if(wave == false)
 	{
-	  cout << "wave is false, waiting" << endl;
+	  SDL_Rect waveIndicatorDest = {sidebarX, sidebarY+(sidebarHeight/3), sidebarWidth, 64};
+	  SDL_SetRenderDrawColor(gRenderer, 0xFF, 0x00, 0x00, 0xFF);
+	  SDL_RenderFillRect(gRenderer, &waveIndicatorDest);
 	  waveWait++;
 	}
       if(waveWait >= 1000)
 	{
-	  cout << "end of wait" << endl;
 	  wave = true;
 	  waveWait = 0;
 	}
       sinceSpawn = time-lastSpawn;
 
       sinceShoot = time-lastShoot;
-      cout << sinceShoot << endl << shootInterval << endl;
       if(sinceShoot <= shootInterval)
 	{
 	  validShoot = false;
 	}
-      
       // Input handler
       SDL_PumpEvents();
       const Uint8* keys = SDL_GetKeyboardState(NULL);
@@ -730,6 +733,7 @@ int main(int argc, char* argv[])
       drawPlayer();
       drawEnemies();
       drawArrows();
+      SDL_UpdateWindowSurface(window);
       SDL_blit(surface);
 
       // Frame limiter
